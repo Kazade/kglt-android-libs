@@ -23,6 +23,7 @@
 #include "generic/protected_ptr.h"
 #include "generic/auto_weakptr.h"
 #include "generic/unique_id.h"
+#include "generic/manager_lookup_ptr.h"
 #include "kazbase/unicode.h"
 
 namespace kglt {
@@ -169,6 +170,10 @@ struct Vec2 : public kmVec2 {
 
     Vec2 operator+(const Vec2& rhs) const {
         return Vec2(x + rhs.x, y + rhs.y);
+    }
+
+    Vec2 operator-(const Vec2& rhs) const {
+        return Vec2(x - rhs.x, y - rhs.y);
     }
 
     unicode to_string() const {
@@ -413,11 +418,13 @@ enum LightType {
 };
 
 enum RenderPriority {
+    RENDER_PRIORITY_ABSOLUTE_BACKGROUND = -150,
     RENDER_PRIORITY_BACKGROUND = -100,
     RENDER_PRIORITY_DISTANT = -50,
     RENDER_PRIORITY_MAIN = 0,
     RENDER_PRIORITY_NEAR = 50,
-    RENDER_PRIORITY_FOREGROUND = 100
+    RENDER_PRIORITY_FOREGROUND = 100,
+    RENDER_PRIORITY_ABSOLUTE_FOREGROUND = 150
 };
 
 const std::vector<RenderPriority> RENDER_PRIORITIES = {
@@ -527,7 +534,9 @@ class Background;
 typedef AutoWeakPtr<Background> BackgroundPtr;
 
 class Stage;
-typedef AutoWeakPtr<Stage> StagePtr;
+class WindowBase;
+typedef generic::TemplatedManager<WindowBase, Stage, StageID> BaseStageManager;
+typedef ManagerLookupPtr<BaseStageManager, StageID> StagePtr;
 
 class ResourceManager;
 typedef AutoWeakPtr<ResourceManager> ResourceManagerPtr;
@@ -537,6 +546,9 @@ typedef AutoWeakPtr<PhysicsEngine> PhysicsEnginePtr;
 
 class RenderSequence;
 typedef AutoWeakPtr<RenderSequence> RenderSequencePtr;
+
+class Pipeline;
+typedef AutoWeakPtr<Pipeline> PipelinePtr;
 
 class Frustum;
 class WindowBase;

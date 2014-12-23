@@ -19,6 +19,8 @@
 #include "viewport.h"
 #include "sound.h"
 #include "managers.h"
+#include "pipeline_helper.h"
+#include "screens/screen_manager.h"
 
 namespace kglt {
 
@@ -57,7 +59,9 @@ class WindowBase :
     public UIStageManager,
     public CameraManager,
     public ResourceManagerImpl,
-    public Loadable {
+    public Loadable,
+    public PipelineHelperAPIInterface,
+    public ScreenManagerInterface {
 
 public:    
     typedef std::shared_ptr<WindowBase> ptr;
@@ -83,6 +87,7 @@ public:
     
     virtual void set_title(const std::string& title) = 0;
     virtual void cursor_position(int32_t& mouse_x, int32_t& mouse_y) = 0;
+    virtual void show_cursor(bool cursor_shown=true) = 0;
     
     virtual void check_events() = 0;
     virtual void swap_buffers() = 0;
@@ -135,9 +140,6 @@ public:
         return *watcher_;
     }
 
-    screens::Loading& loading() { return *loading_; }
-
-    RenderSequencePtr render_sequence();
     generic::DataCarrier& data() { return data_carrier_; }
 
     void enable_physics(std::shared_ptr<PhysicsEngine> engine);
@@ -160,7 +162,37 @@ public:
     void handle_touch_motion(int finger_id, int x, int y);
     void handle_touch_up(int finger_id, int x, int y);
 
+    /* PipelineHelperAPIInterface */
+
+    virtual PipelineHelper render(StageID stage_id, CameraID camera_id) {
+        return new_pipeline_helper(render_sequence_, stage_id, camera_id);
+    }
+
+    virtual PipelineHelper render(UIStageID stage_id, CameraID camera_id) {
+        return new_pipeline_helper(render_sequence_, stage_id, camera_id);
+    }
+
+    virtual PipelinePtr pipeline(PipelineID pid);
+    virtual bool enable_pipeline(PipelineID pid);
+    virtual bool disable_pipeline(PipelineID pid);
+    virtual void delete_pipeline(PipelineID pid);
+    virtual bool has_pipeline(PipelineID pid) const;
+    virtual bool is_pipeline_enabled(PipelineID pid) const;
+
+
+    /* ScreenManager interface */
+    virtual void register_screen(const unicode& route, ScreenFactory factory) { routes_->register_screen(route, factory); }
+    virtual bool has_screen(const unicode& route) const { return routes_->has_screen(route); }
+    virtual ScreenBase::ptr resolve_screen(const unicode& route) { return routes_->resolve_screen(route); }
+    virtual void activate_screen(const unicode& route) { routes_->activate_screen(route); }
+    virtual void load_screen_in_background(const unicode& route, bool redirect_after=true) { routes_->load_screen_in_background(route, redirect_after); }
+    virtual void unload_screen(const unicode& route) { routes_->unload_screen(route); }
+    virtual bool is_screen_loaded(const unicode& route) const { return routes_->is_screen_loaded(route); }
+    virtual ScreenBase::ptr active_screen() const { return routes_->active_screen(); }
+    /* End ScreenManager interface */
+
 protected:
+    RenderSequencePtr render_sequence();
 
     void set_width(uint32_t width) { 
         width_ = width; 
@@ -185,8 +217,6 @@ protected:
 
 private:    
     void create_defaults();
-
-    CameraID default_ui_camera_id_;
 
     bool can_attach_sound_by_id() const { return false; }
 
@@ -225,7 +255,7 @@ private:
     int32_t frame_counter_frames_;
     double frame_time_in_milliseconds_;
 
-    double total_time_;
+    double total_time_ = 0.0;
 
     sig::signal<void ()> signal_frame_started_;
     sig::signal<void ()> signal_pre_swap_;
@@ -246,6 +276,8 @@ private:
     std::shared_ptr<PhysicsEngine> physics_engine_;
 
     std::shared_ptr<VirtualGamepad> virtual_gamepad_;
+
+    std::shared_ptr<ScreenManager> routes_;
 };
 
 }
