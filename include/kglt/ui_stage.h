@@ -4,7 +4,7 @@
 #include <kazbase/signals.h>
 #include "generic/managed.h"
 #include "generic/identifiable.h"
-
+#include "interfaces.h"
 #include "ui/interface.h"
 #include "resource.h"
 
@@ -13,7 +13,9 @@ namespace kglt {
 class UIStage:
     public Managed<UIStage>,
     public generic::Identifiable<UIStageID>,
-    public Resource {
+    public Resource,
+    public RenderableStage {
+
 public:
     /*
      *  Like Stage, this can be added to a pipeline with a camera
@@ -39,16 +41,23 @@ public:
 
     void __handle_mouse_move(int x, int y);
     void __handle_mouse_down(int button);
-    void __handle_mouse_up(int button);
+    void __handle_mouse_up(int button, bool check_rendered=true);
 
-    void __handle_touch_up(int finger_id, int x, int y);
+    void __handle_touch_up(int finger_id, int x, int y, bool check_rendered=true);
     void __handle_touch_motion(int finger_id, int x, int y);
     void __handle_touch_down(int finger_id, int x, int y);
+
+    // RenderableStage
+    void on_render_started() {}
+    void on_render_stopped();
 private:
     WindowBase& window_;
 
     std::shared_ptr<ui::Interface> interface_;
     sig::connection update_conn_;
+
+    std::set<int> mouse_buttons_down_;
+    std::set<int> fingers_down_;
 };
 
 }
