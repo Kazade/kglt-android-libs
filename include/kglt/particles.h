@@ -32,6 +32,7 @@ struct Particle {
     kglt::Vec3 position;
     kglt::Vec3 velocity;
     float ttl;
+    kglt::Colour colour;
 };
 
 class ParticleSystem;
@@ -72,6 +73,10 @@ public:
     void set_width(float w) { dimensions_.x = w; }
     void set_height(float h) { dimensions_.y = h; }
     void set_depth(float d) { dimensions_.z = d; }
+
+    float width() const { return dimensions_.x; }
+    float height() const { return dimensions_.y; }
+    float depth() const { return dimensions_.z; }
 
     void set_ttl(float seconds);
     void set_ttl_range(float min_seconds, float max_seconds);
@@ -149,11 +154,8 @@ public:
 
     int32_t quota() const { return quota_; }
 
-    void set_particle_width(float width) { particle_width_ = width; }
+    void set_particle_width(float width);
     float particle_width() const { return particle_width_; }
-
-    void set_particle_height(float height) { particle_height_ = height; }
-    float particle_height() const { return particle_height_; }
 
     void set_cull_each(bool val=true) { cull_each_ = val; }
     bool cull_each() const { return cull_each_; }
@@ -199,11 +201,15 @@ public:
     void deactivate_emitters() { for(auto emitter: emitters_) { emitter->deactivate(); }; }
     void activate_emitters() { for(auto emitter: emitters_) { emitter->activate(); }; }
 
+    void set_destroy_on_completion(bool value=true) { destroy_on_completion_ = value; }
+    bool destroy_on_completion() const { return destroy_on_completion_; }
+
+    bool has_repeating_emitters() const;
+    bool has_active_emitters() const;
 private:
     unicode name_;
     int quota_ = 10;
     float particle_width_ = 100.0;
-    float particle_height_ = 100.0;
     bool cull_each_ = false;
     RenderPriority render_priority_ = RENDER_PRIORITY_MAIN;
 
@@ -219,6 +225,8 @@ private:
     IndexData index_data_;
 
     VertexArrayObject vao_;
+
+    bool destroy_on_completion_ = false;
 };
 
 }
