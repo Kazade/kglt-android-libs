@@ -32,6 +32,13 @@ public:
     void entry(SDL_TextInputEvent event);
     bool key_down(SDL_Keysym key);
 
+    bool init();
+
+    void set_stats_fps(float fps);
+    void set_stats_subactors_rendered(int count);
+    void show_stats();
+    void hide_stats();
+
 private:
     UIStageID ui_stage_;
     CameraID ui_camera_;
