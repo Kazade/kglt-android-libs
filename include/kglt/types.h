@@ -135,6 +135,12 @@ struct Vec2 : public kmVec2 {
         kmVec2Normalize(this, this);
     }
 
+    Vec2 normalized() const {
+        Vec2 ret;
+        kmVec2Normalize(&ret, this);
+        return ret;
+    }
+
     Vec2 limit(float l) {
         if(length() > l) {
             normalize();
@@ -168,12 +174,36 @@ struct Vec2 : public kmVec2 {
         return *this;
     }
 
+    Vec2& operator-=(const Vec2& rhs) {
+        kmVec2Subtract(this, this, &rhs);
+        return *this;
+    }
+
     Vec2 operator+(const Vec2& rhs) const {
         return Vec2(x + rhs.x, y + rhs.y);
     }
 
+    Vec2& operator/=(float rhs) {
+        kmVec2Scale(this, this, 1.0 / rhs);
+        return *this;
+    }
+
+    Vec2 operator/(float rhs) const {
+        Vec2 result;
+        kmVec2Scale(&result, this, 1.0 / rhs);
+        return result;
+    }
+
+    Vec2 operator-() const {
+        return Vec2(-x, -y);
+    }
+
     Vec2 operator-(const Vec2& rhs) const {
         return Vec2(x - rhs.x, y - rhs.y);
+    }
+
+    float dot(const Vec2& rhs) const {
+        return kmVec2Dot(this, &rhs);
     }
 
     unicode to_string() const {
@@ -200,6 +230,26 @@ struct Vec3 : public kmVec3 {
 
     Vec3(const kmVec3& v) {
         kmVec3Fill(this, v.x, v.y, v.z);
+    }
+
+    Vec2 xy() const {
+        return kglt::Vec2(x, y);
+    }
+
+    Vec2 yx() const {
+        return kglt::Vec2(y, x);
+    }
+
+    Vec3 zyx() const {
+        return kglt::Vec3(z, y, x);
+    }
+
+    Vec2 xz() const {
+        return kglt::Vec2(x, z);
+    }
+
+    Vec2 zx() const {
+        return kglt::Vec2(z, x);
     }
 
     Vec3 operator+(const Vec3& rhs) const {
@@ -267,7 +317,7 @@ struct Vec3 : public kmVec3 {
         kmVec3Normalize(this, this);
     }
 
-    Vec3 rotated_by(const Quaternion& q) {
+    Vec3 rotated_by(const Quaternion& q) const {
         Vec3 result;
         kmQuaternionMultiplyVec3(&result, &q, this);
         return result;
@@ -382,6 +432,8 @@ struct Radians {
 
 Radians to_radians(const Degrees& degrees);
 Degrees to_degrees(const Radians& radians);
+
+typedef std::function<kglt::Colour (const kglt::Vec3&, const kglt::Vec3&)> HeightmapDiffuseGenerator;
 
 const float PI = kmPI;
 

@@ -4,9 +4,12 @@
 #include <kazbase/signals.h>
 #include "generic/managed.h"
 #include "generic/identifiable.h"
+#include "generic/property.h"
 #include "interfaces.h"
 #include "ui/interface.h"
 #include "resource.h"
+#include "loadable.h"
+#include "window_base.h"
 
 namespace kglt {
 
@@ -14,7 +17,8 @@ class UIStage:
     public Managed<UIStage>,
     public generic::Identifiable<UIStageID>,
     public Resource,
-    public RenderableStage {
+    public RenderableStage,
+    public Loadable {
 
 public:
     /*
@@ -28,6 +32,8 @@ public:
 
     ui::ElementList append(const unicode& tag);
     ui::ElementList $(const unicode& selector);
+    ui::ElementList find(const unicode& selector) { return this->$(selector); }
+
     void set_styles(const std::string& styles);
     void load_rml(const unicode& path);
     void load_rml_from_string(const unicode& data);
@@ -47,11 +53,16 @@ public:
     void __handle_touch_motion(int finger_id, int x, int y);
     void __handle_touch_down(int finger_id, int x, int y);
 
+    ui::Interface* __interface() const { return interface_.get(); }
+
     // RenderableStage
     void on_render_started() {}
     void on_render_stopped();
+
+    Property<UIStage, WindowBase> window = { this, &UIStage::window_ };
+
 private:
-    WindowBase& window_;
+    WindowBase* window_ = nullptr;
 
     std::shared_ptr<ui::Interface> interface_;
     sig::connection update_conn_;

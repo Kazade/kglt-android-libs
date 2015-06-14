@@ -6,14 +6,16 @@
 #include <memory>
 #include <kaztimer/kaztimer.h>
 
+#include "generic/property.h"
+#include "generic/manager.h"
+#include "generic/data_carrier.h"
+
 #include "resource_locator.h"
 
 #include "idle_task_manager.h"
-
+#include "input_controller.h"
 #include "generic/auto_weakptr.h"
 #include "kazbase/logging.h"
-#include "generic/manager.h"
-#include "generic/data_carrier.h"
 #include "resource_manager.h"
 #include "types.h"
 #include "sound.h"
@@ -76,6 +78,7 @@ public:
     virtual ~WindowBase();
     
     LoaderPtr loader_for(const unicode& filename);
+    LoaderPtr loader_for(const unicode& loader_name, const unicode& filename);
     
     void register_loader(LoaderTypePtr loader_type);
 
@@ -97,21 +100,14 @@ public:
 
     uint32_t width() const { return width_; }
     uint32_t height() const { return height_; }
+    float aspect_ratio() const { return float(width_) / float(height_); }
     
     bool run_frame();
     void update(double dt) override;
 
-    IdleTaskManager& idle() { return idle_; }
-
-    ResourceLocator& resource_locator() { return *resource_locator_; }
-    const ResourceLocator& resource_locator() const { return *resource_locator_; }
-
-    Keyboard& keyboard();
     Mouse& mouse();
     Joypad& joypad(uint8_t idx);
     uint8_t joypad_count() const;
-
-    MessageBar& message_bar() { return *message_bar_; }
 
     void set_logging_level(LoggingLevel level);
 
@@ -125,15 +121,6 @@ public:
     void stop_running() { is_running_ = false; }
     const bool is_shutting_down() const { return is_running_ == false; }
 
-    Watcher& watcher() {
-        if(!watcher_) {
-            throw RuntimeError("Watcher has not been initialized");
-        }
-        return *watcher_;
-    }
-
-    generic::DataCarrier& data() { return data_carrier_; }
-
     void enable_physics(std::shared_ptr<PhysicsEngine> engine);
     PhysicsEnginePtr physics();
     const bool has_physics_engine() const;
@@ -141,7 +128,6 @@ public:
     void enable_virtual_joypad(VirtualDPadDirections directions, int button_count, bool flipped=false);
     void disable_virtual_joypad();
     bool has_virtual_joypad() const { return bool(virtual_gamepad_); }
-    VirtualGamepad* virtual_joypad() { return virtual_gamepad_.get(); }
 
     void reset();
 
@@ -156,11 +142,11 @@ public:
 
     /* PipelineHelperAPIInterface */
 
-    virtual PipelineHelper render(StageID stage_id, CameraID camera_id) {
+    virtual PipelineHelper render(StageID stage_id, CameraID camera_id) override {
         return new_pipeline_helper(render_sequence_, stage_id, camera_id);
     }
 
-    virtual PipelineHelper render(UIStageID stage_id, CameraID camera_id) {
+    virtual PipelineHelper render(UIStageID stage_id, CameraID camera_id) override {
         return new_pipeline_helper(render_sequence_, stage_id, camera_id);
     }
 
@@ -175,18 +161,17 @@ public:
     /* ScreenManager interface */
     virtual void register_screen(const unicode& route, ScreenFactory factory) { routes_->register_screen(route, factory); }
     virtual bool has_screen(const unicode& route) const { return routes_->has_screen(route); }
-    virtual ScreenBase::ptr resolve_screen(const unicode& route) { return routes_->resolve_screen(route); }
+    virtual ScreenBasePtr resolve_screen(const unicode& route) { return routes_->resolve_screen(route); }
     virtual void activate_screen(const unicode& route) { routes_->activate_screen(route); }
     virtual void load_screen_in_background(const unicode& route, bool redirect_after=true) { routes_->load_screen_in_background(route, redirect_after); }
     virtual void unload_screen(const unicode& route) { routes_->unload_screen(route); }
     virtual bool is_screen_loaded(const unicode& route) const { return routes_->is_screen_loaded(route); }
-    virtual ScreenBase::ptr active_screen() const { return routes_->active_screen(); }
+    virtual ScreenBasePtr active_screen() const { return routes_->active_screen(); }
     /* End ScreenManager interface */
-
-    Console* console() { return console_.get(); }
 
     void show_stats();
     void hide_stats();
+
 protected:
     RenderSequencePtr render_sequence();
 
@@ -273,6 +258,33 @@ private:
     std::shared_ptr<VirtualGamepad> virtual_gamepad_;
 
     std::shared_ptr<ScreenManager> routes_;
+
+public:
+
+    //Read only properties
+    Property<WindowBase, Console> console = { this, &WindowBase::console_ };
+    Property<WindowBase, VirtualGamepad> virtual_joypad = { this, &WindowBase::virtual_gamepad_ };
+    Property<WindowBase, MessageBar> message_bar = { this, &WindowBase::message_bar_ };
+
+    Property<WindowBase, Watcher> watcher = {
+        this, [](const WindowBase* self) -> Watcher& {
+            if(!self->watcher_) {
+                throw LogicError("Watcher has not been initialized");
+            } else {
+                return *self->watcher_.get();
+            }
+        }
+    };
+
+    Property<WindowBase, IdleTaskManager> idle = { this, &WindowBase::idle_ };
+    Property<WindowBase, generic::DataCarrier> data = { this, &WindowBase::data_carrier_ };
+    Property<WindowBase, ResourceLocator> resource_locator = { this, &WindowBase::resource_locator_ };
+
+    Property<WindowBase, Keyboard> keyboard = {
+        this, [](WindowBase* self) -> Keyboard& {
+            return self->input_controller_->keyboard();
+        }
+    };
 };
 
 }

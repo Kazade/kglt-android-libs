@@ -30,10 +30,16 @@ public:
     virtual MeshID new_mesh_from_file(const unicode& path, bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_from_tmx_file(const unicode& tmx_file, const unicode& layer_name, float tile_render_size=1.0, bool garbage_collect=true) = 0;
 
+    virtual MeshID new_mesh_from_heightmap(
+        const unicode& image_file, float spacing=1.0, float min_height=-64,
+        float max_height=64.0, const HeightmapDiffuseGenerator& generator=HeightmapDiffuseGenerator(),
+        bool garbage_collect=true
+    ) = 0;
+
     virtual MeshID new_mesh_as_cube(float width, bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_as_box(float width, float height, float depth, bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_as_sphere(float diameter, bool garbage_collect=true) = 0;
-    virtual MeshID new_mesh_as_rectangle(float width, float height, const Vec2& offset=Vec2(), bool garbage_collect=true) = 0;
+    virtual MeshID new_mesh_as_rectangle(float width, float height, const Vec2& offset=Vec2(), MaterialID material=MaterialID(), bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_from_vertices(const std::vector<kglt::Vec2>& vertices, MeshArrangement arrangement=MESH_ARRANGEMENT_TRIANGLES, bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_from_vertices(const std::vector<kglt::Vec3>& vertices, MeshArrangement arrangement=MESH_ARRANGEMENT_TRIANGLES, bool garbage_collect=true) = 0;
 
@@ -41,7 +47,7 @@ public:
     virtual MeshID new_mesh_with_alias_from_file(const unicode& alias, const unicode &path, bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_with_alias_as_cube(const unicode& alias, float width, bool garbage_collect=true) = 0;
     virtual MeshID new_mesh_with_alias_as_sphere(const unicode& alias, float diameter, bool garbage_collect=true) = 0;
-    virtual MeshID new_mesh_with_alias_as_rectangle(const unicode& alias, float width, float height, const Vec2& offset=Vec2(), bool garbage_collect=true) = 0;
+    virtual MeshID new_mesh_with_alias_as_rectangle(const unicode& alias, float width, float height, const Vec2& offset=Vec2(), MaterialID material=MaterialID(), bool garbage_collect=true) = 0;
     virtual MeshID get_mesh_with_alias(const unicode& alias) = 0;
 
     virtual void delete_mesh(MeshID m) = 0;
@@ -130,10 +136,15 @@ public:
     MeshID new_mesh(bool garbage_collect=true) override;
     MeshID new_mesh_from_file(const unicode& path, bool garbage_collect=true) override;
     MeshID new_mesh_from_tmx_file(const unicode& tmx_file, const unicode& layer_name, float tile_render_size=1.0, bool garbage_collect=true) override;
+    MeshID new_mesh_from_heightmap(
+        const unicode& image_file, float spacing=1.0, float min_height=-64,
+        float max_height=64.0, const HeightmapDiffuseGenerator& generator=HeightmapDiffuseGenerator(),
+        bool garbage_collect=true
+    ) override;
     MeshID new_mesh_as_cube(float width, bool garbage_collect=true) override;
     MeshID new_mesh_as_box(float width, float height, float depth, bool garbage_collect=true) override;
     MeshID new_mesh_as_sphere(float diameter, bool garbage_collect=true) override;
-    MeshID new_mesh_as_rectangle(float width, float height, const Vec2& offset=Vec2(), bool garbage_collect=true) override;
+    MeshID new_mesh_as_rectangle(float width, float height, const Vec2& offset=Vec2(), MaterialID material=MaterialID(), bool garbage_collect=true) override;
     MeshID new_mesh_from_vertices(const std::vector<kglt::Vec2>& vertices, MeshArrangement arrangement=MESH_ARRANGEMENT_TRIANGLES, bool garbage_collect=true) override;
     MeshID new_mesh_from_vertices(const std::vector<kglt::Vec3>& vertices, MeshArrangement arrangement=MESH_ARRANGEMENT_TRIANGLES, bool garbage_collect=true) override;
 
@@ -141,7 +152,7 @@ public:
     MeshID new_mesh_with_alias_from_file(const unicode& alias, const unicode &path, bool garbage_collect=true) override;
     MeshID new_mesh_with_alias_as_cube(const unicode& alias, float width, bool garbage_collect=true) override;
     MeshID new_mesh_with_alias_as_sphere(const unicode& alias, float diameter, bool garbage_collect=true) override;
-    MeshID new_mesh_with_alias_as_rectangle(const unicode &name, float width, float height, const Vec2& offset=Vec2(), bool garbage_collect=true) override;
+    MeshID new_mesh_with_alias_as_rectangle(const unicode &name, float width, float height, const Vec2& offset=Vec2(), MaterialID material=MaterialID(), bool garbage_collect=true) override;
     MeshID get_mesh_with_alias(const unicode& alias) override;
 
     ProtectedPtr<Mesh> mesh(MeshID m);

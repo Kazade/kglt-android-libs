@@ -139,6 +139,12 @@ public:
         return window().new_mesh_from_tmx_file(tmx_file, layer_name, tile_render_size, garbage_collect);
     }
 
+    MeshID new_mesh_from_heightmap(
+        const unicode& image_file, float spacing=1.0, float min_height=-64,
+        float max_height=64.0, const HeightmapDiffuseGenerator& generator=HeightmapDiffuseGenerator(), bool garbage_collect=true) override {
+        return window().new_mesh_from_heightmap(image_file, spacing, min_height, max_height, generator, garbage_collect);
+    }
+
     virtual MeshID new_mesh_as_cube(float width, bool garbage_collect=true) {
         return window().new_mesh_as_cube(width, garbage_collect);
     }
@@ -151,8 +157,8 @@ public:
         return window().new_mesh_as_sphere(diameter, garbage_collect);
     }
 
-    MeshID new_mesh_as_rectangle(float width, float height, const Vec2& offset=Vec2(), bool garbage_collect=true) override {
-        return window().new_mesh_as_rectangle(width, height, offset, garbage_collect);
+    MeshID new_mesh_as_rectangle(float width, float height, const Vec2& offset=Vec2(), MaterialID material=MaterialID(), bool garbage_collect=true) override {
+        return window().new_mesh_as_rectangle(width, height, offset, material, garbage_collect);
     }
 
     MeshID new_mesh_from_vertices(const std::vector<Vec2> &vertices, MeshArrangement arrangement=MESH_ARRANGEMENT_TRIANGLES, bool garbage_collect=true) override {
@@ -179,8 +185,8 @@ public:
         return window().new_mesh_with_alias_as_sphere(alias, diameter, garbage_collect);
     }
 
-    MeshID new_mesh_with_alias_as_rectangle(const unicode &alias, float width, float height, const Vec2& offset=Vec2(), bool garbage_collect=true) override {
-        return window().new_mesh_with_alias_as_rectangle(alias, width, height, offset, garbage_collect);
+    MeshID new_mesh_with_alias_as_rectangle(const unicode &alias, float width, float height, const Vec2& offset=Vec2(), MaterialID material=MaterialID(), bool garbage_collect=true) override {
+        return window().new_mesh_with_alias_as_rectangle(alias, width, height, offset, material, garbage_collect);
     }
 
     MeshID get_mesh_with_alias(const unicode& alias) override {

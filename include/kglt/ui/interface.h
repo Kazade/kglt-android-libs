@@ -39,6 +39,20 @@ public:
         return ElementList(new_elements);
     }
 
+    bool is(const std::string& selector) {
+        if(selector != ":visible") {
+            throw ValueError("Unsupported selector: " + selector);
+        }
+
+        for(Element& e: elements_) {
+            if(e.is_visible()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     ElementList add_class(const unicode& cl) {
         for(Element& e: elements_) {
             e.add_class(cl);
@@ -88,9 +102,9 @@ public:
 
     bool empty() const { return elements_.empty(); }
 
-    void show() {
+    void show(const std::string& transition="") {
         for(Element& e: elements_) {
-            e.show();
+            e.show(transition);
         }
     }
 
@@ -128,6 +142,10 @@ private:
     std::vector<Element> elements_;
 };
 
+
+void set_active_impl(RocketImpl* impl);
+RocketImpl* get_active_impl();
+
 class Interface :
     public Managed<Interface>,
     public Loadable {
@@ -154,6 +172,8 @@ public:
     Mat4 projection_matrix() const { return projection_matrix_; }
 
     void load_font(const unicode& ttf_file);
+
+    WindowBase* window() { return &window_; }
 private:    
     void set_projection_matrix(const Mat4& mat) { projection_matrix_ = mat; }
     std::vector<unicode> find_fonts();
